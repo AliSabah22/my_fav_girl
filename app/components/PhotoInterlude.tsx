@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoInterludeData } from "../types";
 import { getPhotoProgress, getPhotoPhase, getSpotlightIndex } from "../lib/audioState";
+import { signatureEase } from "../lib/motion";
 
 interface PhotoInterludeProps {
   interlude: PhotoInterludeData;
@@ -29,7 +30,11 @@ export default function PhotoInterlude({ interlude, currentTime }: PhotoInterlud
                 scale: 1,
                 rotate: rotation,
               }}
-              transition={{ duration: 0.6, delay: phase === "burst-in" ? i * 0.1 : 0 }}
+              transition={{ duration: 0.6, delay: phase === "burst-in" ? i * 0.1 : 0, ease: signatureEase }}
+              style={{
+                border: "6px solid rgba(243,234,217,0.4)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+              }}
               className="relative aspect-[4/5] overflow-hidden rounded-md bg-panel"
             >
               {photo.src ? (
@@ -48,16 +53,24 @@ export default function PhotoInterlude({ interlude, currentTime }: PhotoInterlud
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1.15 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 5, ease: "easeInOut" }}
+            transition={{ duration: 5, ease: signatureEase }}
             className="absolute inset-0 flex flex-col items-center justify-center bg-bg/90"
           >
             <img
               src={spotlightPhoto.src}
               alt={spotlightPhoto.caption || "memory"}
-              className="max-h-[70vh] max-w-[85vw] rounded-lg object-contain shadow-2xl"
+              style={{ boxShadow: "0 0 60px rgba(255,111,145,0.15), 0 25px 50px -12px rgba(0,0,0,0.5)" }}
+              className="max-h-[70vh] max-w-[85vw] rounded-lg object-contain"
             />
             {spotlightPhoto.caption && (
-              <p className="mt-4 font-display italic text-rose">{spotlightPhoto.caption}</p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.6, ease: signatureEase }}
+                className="mt-4 font-display italic text-rose"
+              >
+                {spotlightPhoto.caption}
+              </motion.p>
             )}
           </motion.div>
         )}
