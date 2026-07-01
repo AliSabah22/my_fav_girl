@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { trailColorForStage } from "../lib/cursorTrail";
+import { trailRgbForStage } from "../lib/cursorTrail";
 
 interface CursorTrailProps {
   stageIndex: number;
@@ -39,7 +39,7 @@ export default function CursorTrail({ stageIndex, totalStages }: CursorTrailProp
     }
     window.addEventListener("mousemove", handleMove);
 
-    const color = trailColorForStage(stageIndex, totalStages);
+    const [r, g, b] = trailRgbForStage(stageIndex, totalStages);
     let frame: number;
     function draw() {
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
@@ -48,7 +48,6 @@ export default function CursorTrail({ stageIndex, totalStages }: CursorTrailProp
         const opacity = 1 - p.age / 30;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, 6 * opacity, 0, Math.PI * 2);
-        const [r, g, b] = color.replace("rgb(", "").replace(")", "").split(",").map(Number);
         ctx!.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`;
         ctx!.fill();
       }

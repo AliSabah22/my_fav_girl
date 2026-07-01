@@ -55,13 +55,21 @@ export default function Page() {
     audioRef.current?.play().catch(() => {});
   }
 
+  function handleAudioEnded() {
+    if (phase !== "experience") return;
+    audioRef.current?.pause();
+    setPhase("name");
+  }
+
   function handleSkip() {
     const audio = audioRef.current;
     if (!audio) return;
     const next = inPhotoInterlude
       ? getPhotoInterludeExitTarget(photoInterlude, stages)
       : activeStage
-      ? getNextStageWindowStart(stages, activeStage.id)
+      ? activeStage.id === "stage2"
+        ? photoInterlude.windowStart
+        : getNextStageWindowStart(stages, activeStage.id)
       : null;
     if (next !== null) {
       audio.currentTime = next;
@@ -85,7 +93,7 @@ export default function Page() {
     >
       <FloatingParticles stageIndex={stageIndex} totalStages={stages.length} />
       <CursorTrail stageIndex={stageIndex} totalStages={stages.length} />
-      <AudioPlayer src="/audio/risk-it-all.mp3" audioRef={audioRef} />
+      <AudioPlayer src="/audio/risk-it-all.mp3" audioRef={audioRef} onEnded={handleAudioEnded} />
 
       <div className="relative z-20 flex h-full w-full items-center justify-center">
         <AnimatePresence mode="wait">

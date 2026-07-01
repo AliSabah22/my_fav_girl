@@ -1,15 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface AudioPlayerProps {
   src: string;
   audioRef: React.RefObject<HTMLAudioElement>;
+  onEnded?: () => void;
 }
 
-export default function AudioPlayer({ src, audioRef }: AudioPlayerProps) {
+export default function AudioPlayer({ src, audioRef, onEnded }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [volume, setVolume] = useState(0.8);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function togglePlay() {
     const audio = audioRef.current;
@@ -39,6 +45,7 @@ export default function AudioPlayer({ src, audioRef }: AudioPlayerProps) {
         onError={() => setLoadError(true)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onEnded={onEnded}
       />
       {loadError ? (
         <span className="text-xs text-muted">Add risk-it-all.mp3 to public/audio</span>

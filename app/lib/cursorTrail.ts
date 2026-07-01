@@ -19,3 +19,8 @@ export function trailColorForStage(stageIndex: number, totalStages: number): str
   const [r, g, b] = lerpColor(ROSE_RGB, GOLD_RGB, t);
   return `rgb(${r}, ${g}, ${b})`;
 }
+
+export function trailRgbForStage(stageIndex: number, totalStages: number): [number, number, number] {
+  const t = totalStages <= 1 ? 0 : stageIndex / (totalStages - 1);
+  return lerpColor(ROSE_RGB, GOLD_RGB, t);
+}

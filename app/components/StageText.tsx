@@ -12,7 +12,7 @@ export default function StageText({ stage, currentTime }: StageTextProps) {
   const lines = getRevealedLines(stage, currentTime);
 
   return (
-    <div className="flex max-w-2xl flex-col items-center justify-center gap-4 px-6 text-center">
+    <div className="flex max-h-[70vh] max-w-2xl flex-col items-center justify-center gap-4 overflow-y-auto px-6 text-center">
       <AnimatePresence mode="popLayout">
         {lines.map((text, i) => (
           <motion.p
