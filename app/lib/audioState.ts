@@ -4,8 +4,13 @@ export function getActiveStage(stages: Stage[], currentTime: number): Stage | nu
   return stages.find((s) => currentTime >= s.windowStart && currentTime < s.windowEnd) ?? null;
 }
 
-export function getRevealedLines(stage: Stage, currentTime: number): string[] {
-  return stage.lines.filter((line) => currentTime >= line.time).map((line) => line.text);
+export function getRevealedLines(
+  stage: Stage,
+  currentTime: number
+): { text: string; emphasis: boolean }[] {
+  return stage.lines
+    .filter((line) => currentTime >= line.time)
+    .map((line) => ({ text: line.text, emphasis: line.emphasis ?? false }));
 }
 
 export function isInPhotoInterlude(

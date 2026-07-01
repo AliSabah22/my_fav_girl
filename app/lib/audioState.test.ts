@@ -35,15 +35,38 @@ describe("getActiveStage", () => {
 
 describe("getRevealedLines", () => {
   it("includes lines whose time has passed, in order", () => {
-    expect(getRevealedLines(stages[0], 6)).toEqual(["a0", "a5"]);
+    expect(getRevealedLines(stages[0], 6)).toEqual([
+      { text: "a0", emphasis: false },
+      { text: "a5", emphasis: false },
+    ]);
   });
 
   it("includes a line exactly at currentTime", () => {
-    expect(getRevealedLines(stages[0], 5)).toEqual(["a0", "a5"]);
+    expect(getRevealedLines(stages[0], 5)).toEqual([
+      { text: "a0", emphasis: false },
+      { text: "a5", emphasis: false },
+    ]);
   });
 
   it("excludes lines that haven't happened yet", () => {
-    expect(getRevealedLines(stages[0], 2)).toEqual(["a0"]);
+    expect(getRevealedLines(stages[0], 2)).toEqual([{ text: "a0", emphasis: false }]);
+  });
+
+  it("marks emphasis lines correctly and defaults missing emphasis to false", () => {
+    const emphasisStage: Stage = {
+      id: "e",
+      title: "E",
+      windowStart: 0,
+      windowEnd: 10,
+      lines: [
+        { time: 0, text: "normal" },
+        { time: 1, text: "big moment", emphasis: true },
+      ],
+    };
+    expect(getRevealedLines(emphasisStage, 5)).toEqual([
+      { text: "normal", emphasis: false },
+      { text: "big moment", emphasis: true },
+    ]);
   });
 });
 

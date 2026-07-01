@@ -1,6 +1,7 @@
 export interface StageLine {
   text: string;
   time: number; // seconds into the song this line appears
+  emphasis?: boolean; // renders larger/italic and holds longer in StageText
 }
 
 export interface Stage {
