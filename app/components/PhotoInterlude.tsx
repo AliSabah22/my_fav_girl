@@ -16,7 +16,7 @@ export default function PhotoInterlude({ interlude, currentTime }: PhotoInterlud
 
   return (
     <div className="relative h-full w-full" data-phase={phase}>
-      <div className="grid grid-cols-3 gap-3 p-8 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 sm:gap-3 sm:p-8 md:grid-cols-4">
         {interlude.photos.map((photo, i) => {
           const rotation = (i % 2 === 0 ? -1 : 1) * (4 + (i % 3) * 2);
           const isSpotlit = phase === "spotlight" && i === spotlightIndex;

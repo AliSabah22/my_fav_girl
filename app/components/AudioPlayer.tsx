@@ -29,7 +29,7 @@ export default function AudioPlayer({ src, audioRef }: AudioPlayerProps) {
 
   return (
     <div
-      className="fixed right-4 top-4 z-30 flex items-center gap-3 rounded-full bg-panel/80 px-4 py-2 backdrop-blur"
+      className="fixed right-2 top-2 z-30 flex items-center gap-2 rounded-full bg-panel/80 px-3 py-1.5 backdrop-blur sm:right-4 sm:top-4 sm:gap-3 sm:px-4 sm:py-2"
       onClick={(e) => e.stopPropagation()}
     >
       <audio
