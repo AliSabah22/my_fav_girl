@@ -34,4 +34,11 @@ describe("stepParticle", () => {
     const next = stepParticle(p, 600);
     expect(next.y).toBe(610);
   });
+
+  it("applies an optional speed multiplier to this frame's displacement only, without changing stored speed", () => {
+    const p = { x: 100, y: 100, radius: 1, speed: 2, drift: 0, opacity: 0.5 };
+    const next = stepParticle(p, 600, 2);
+    expect(next.y).toBe(96); // moved twice as far this frame (speed 2 * multiplier 2 = 4)
+    expect(next.speed).toBe(2); // stored speed itself is unchanged, so it won't compound next frame
+  });
 });

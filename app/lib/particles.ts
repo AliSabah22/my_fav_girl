@@ -26,8 +26,8 @@ export function createParticle(width: number, height: number): Particle {
   };
 }
 
-export function stepParticle(p: Particle, height: number): Particle {
-  const next = { ...p, y: p.y - p.speed, x: p.x + p.drift };
+export function stepParticle(p: Particle, height: number, speedMultiplier: number = 1): Particle {
+  const next = { ...p, y: p.y - p.speed * speedMultiplier, x: p.x + p.drift };
   if (next.y < 0) {
     next.y = height + 10;
   }

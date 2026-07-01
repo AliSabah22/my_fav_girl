@@ -5,9 +5,10 @@ import { particleCountForStage, createParticle, stepParticle, type Particle } fr
 interface FloatingParticlesProps {
   stageIndex: number;
   totalStages: number;
+  getAmplitude: () => number;
 }
 
-export default function FloatingParticles({ stageIndex, totalStages }: FloatingParticlesProps) {
+export default function FloatingParticles({ stageIndex, totalStages, getAmplitude }: FloatingParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
 
@@ -36,7 +37,8 @@ export default function FloatingParticles({ stageIndex, totalStages }: FloatingP
     let frame: number;
     function draw() {
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      particlesRef.current = particlesRef.current.map((p) => stepParticle(p, canvas!.height));
+      const speedMultiplier = 1 + getAmplitude() * 0.6;
+      particlesRef.current = particlesRef.current.map((p) => stepParticle(p, canvas!.height, speedMultiplier));
       for (const p of particlesRef.current) {
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -51,7 +53,7 @@ export default function FloatingParticles({ stageIndex, totalStages }: FloatingP
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
     };
-  }, [stageIndex, totalStages]);
+  }, [stageIndex, totalStages, getAmplitude]);
 
   return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-0" aria-hidden="true" />;
 }
