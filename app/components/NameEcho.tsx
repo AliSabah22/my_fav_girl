@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { signatureEase } from "../lib/motion";
 
 interface NameEchoProps {
   options: string[];
@@ -35,6 +36,7 @@ export default function NameEcho({ options, onComplete, holdMs = 4000 }: NameEch
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: signatureEase }}
             className="flex flex-col items-center gap-4"
           >
             <input
@@ -44,7 +46,11 @@ export default function NameEcho({ options, onComplete, holdMs = 4000 }: NameEch
               className="border-b border-gold bg-transparent px-2 py-1 text-center font-display text-2xl text-cream outline-none"
               autoFocus
             />
-            <button type="submit" className="rounded-full bg-gold px-6 py-2 text-sm font-medium text-bg">
+            <button
+              type="submit"
+              style={{ boxShadow: "0 0 24px rgba(255,111,145,0.4)" }}
+              className="rounded-full bg-gold px-6 py-2 text-sm font-medium text-bg transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105"
+            >
               Enter
             </button>
           </motion.form>
@@ -53,7 +59,7 @@ export default function NameEcho({ options, onComplete, holdMs = 4000 }: NameEch
             key="echo"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: signatureEase }}
             className="whitespace-pre-line font-display text-2xl italic text-rose sm:text-3xl"
           >
             {echo}

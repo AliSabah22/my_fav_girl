@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { signatureEase } from "../lib/motion";
 
 interface ClosingSequenceProps {
   lines: string[];
@@ -35,7 +36,7 @@ export default function ClosingSequence({ lines, intervalMs = 3200, onComplete }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2 }}
+            transition={{ duration: 1.2, ease: signatureEase }}
             className="font-display text-xl italic text-cream sm:text-2xl"
           >
             {visible}
