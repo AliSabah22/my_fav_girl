@@ -7,14 +7,32 @@ interface AudioPlayerProps {
   onEnded?: () => void;
 }
 
+function PlayIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+      <path d="M3 1.5v11l9-5.5-9-5.5z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+      <rect x="2" y="1.5" width="3.5" height="11" />
+      <rect x="8.5" y="1.5" width="3.5" height="11" />
+    </svg>
+  );
+}
+
 export default function AudioPlayer({ src, audioRef, onEnded }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [volume, setVolume] = useState(0.8);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
   }, []);
 
   function togglePlay() {
@@ -51,8 +69,12 @@ export default function AudioPlayer({ src, audioRef, onEnded }: AudioPlayerProps
         <span className="text-xs text-muted">Add risk-it-all.mp3 to public/audio</span>
       ) : (
         <>
-          <button onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"} className="text-sm text-cream">
-            {isPlaying ? "Pause" : "Play"}
+          <button
+            onClick={togglePlay}
+            aria-label={isPlaying ? "Pause" : "Play"}
+            className="flex h-6 w-6 items-center justify-center text-cream"
+          >
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </button>
           <input
             type="range"
@@ -62,7 +84,7 @@ export default function AudioPlayer({ src, audioRef, onEnded }: AudioPlayerProps
             value={volume}
             onChange={handleVolumeChange}
             aria-label="Volume"
-            className="w-16 accent-gold"
+            className="h-1 w-16 appearance-none rounded-full bg-line [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-gold [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gold"
           />
         </>
       )}
