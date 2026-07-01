@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { lerpColor, trailColorForStage, trailRgbForStage, ROSE_RGB, GOLD_RGB } from "./cursorTrail";
+import { lerpColor, trailColorForStage, trailRgbForStage, randomTrailRgb, ROSE_RGB, GOLD_RGB } from "./cursorTrail";
 
 describe("lerpColor", () => {
   it("returns the start color at t=0 and end color at t=1", () => {
@@ -21,8 +21,27 @@ describe("trailColorForStage", () => {
 });
 
 describe("trailRgbForStage", () => {
-  it("returns the raw rose tuple at the first stage and gold tuple at the last", () => {
-    expect(trailRgbForStage(0, 6)).toEqual(ROSE_RGB);
-    expect(trailRgbForStage(5, 6)).toEqual(GOLD_RGB);
+  it("returns the same values trailColorForStage's string encodes", () => {
+    const [r, g, b] = trailRgbForStage(0, 6);
+    expect([r, g, b]).toEqual(ROSE_RGB);
+  });
+});
+
+describe("randomTrailRgb", () => {
+  it("returns a tuple whose channels fall between the rose and gold endpoints", () => {
+    const [r, g, b] = randomTrailRgb();
+    const minR = Math.min(ROSE_RGB[0], GOLD_RGB[0]);
+    const maxR = Math.max(ROSE_RGB[0], GOLD_RGB[0]);
+    expect(r).toBeGreaterThanOrEqual(minR);
+    expect(r).toBeLessThanOrEqual(maxR);
+    expect(g).toBeGreaterThanOrEqual(Math.min(ROSE_RGB[1], GOLD_RGB[1]));
+    expect(b).toBeGreaterThanOrEqual(Math.min(ROSE_RGB[2], GOLD_RGB[2]));
+  });
+});
+
+describe("pink palette endpoints", () => {
+  it("uses the new bold-pink values, not the old gold/dusty-rose ones", () => {
+    expect(ROSE_RGB).toEqual([255, 143, 171]);
+    expect(GOLD_RGB).toEqual([255, 111, 145]);
   });
 });

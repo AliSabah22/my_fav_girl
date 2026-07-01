@@ -1,19 +1,21 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { trailRgbForStage } from "../lib/cursorTrail";
+import { randomTrailRgb } from "../lib/cursorTrail";
 
 interface CursorTrailProps {
-  stageIndex: number;
-  totalStages: number;
+  getAmplitude: () => number;
 }
 
 interface TrailPoint {
   x: number;
   y: number;
   age: number;
+  rgb: [number, number, number];
 }
 
-export default function CursorTrail({ stageIndex, totalStages }: CursorTrailProps) {
+const FADE_FRAMES = 70;
+
+export default function CursorTrail({ getAmplitude }: CursorTrailProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointsRef = useRef<TrailPoint[]>([]);
 
@@ -34,23 +36,29 @@ export default function CursorTrail({ stageIndex, totalStages }: CursorTrailProp
     window.addEventListener("resize", resize);
 
     function handleMove(e: MouseEvent) {
-      pointsRef.current.push({ x: e.clientX, y: e.clientY, age: 0 });
+      pointsRef.current.push({ x: e.clientX, y: e.clientY, age: 0, rgb: randomTrailRgb() });
       if (pointsRef.current.length > 40) pointsRef.current.shift();
     }
     window.addEventListener("mousemove", handleMove);
 
-    const [r, g, b] = trailRgbForStage(stageIndex, totalStages);
     let frame: number;
     function draw() {
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      pointsRef.current = pointsRef.current.map((p) => ({ ...p, age: p.age + 1 })).filter((p) => p.age < 30);
+      const amplitude = getAmplitude();
+      pointsRef.current = pointsRef.current
+        .map((p) => ({ ...p, age: p.age + 1 }))
+        .filter((p) => p.age < FADE_FRAMES);
       for (const p of pointsRef.current) {
-        const opacity = 1 - p.age / 30;
+        const fade = 1 - p.age / FADE_FRAMES;
+        const radius = 6 * fade * (1 + amplitude * 0.5);
+        ctx!.shadowBlur = 6;
+        ctx!.shadowColor = `rgba(${p.rgb[0]}, ${p.rgb[1]}, ${p.rgb[2]}, ${fade * 0.6})`;
         ctx!.beginPath();
-        ctx!.arc(p.x, p.y, 6 * opacity, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`;
+        ctx!.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(${p.rgb[0]}, ${p.rgb[1]}, ${p.rgb[2]}, ${fade * 0.5})`;
         ctx!.fill();
       }
+      ctx!.shadowBlur = 0;
       frame = requestAnimationFrame(draw);
     }
     frame = requestAnimationFrame(draw);
@@ -60,7 +68,7 @@ export default function CursorTrail({ stageIndex, totalStages }: CursorTrailProp
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMove);
     };
-  }, [stageIndex, totalStages]);
+  }, [getAmplitude]);
 
   return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-10" aria-hidden="true" />;
 }

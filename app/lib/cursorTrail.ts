@@ -11,8 +11,8 @@ export function lerpColor(
   ];
 }
 
-export const ROSE_RGB: [number, number, number] = [217, 138, 130];
-export const GOLD_RGB: [number, number, number] = [201, 161, 90];
+export const ROSE_RGB: [number, number, number] = [255, 143, 171];
+export const GOLD_RGB: [number, number, number] = [255, 111, 145];
 
 export function trailColorForStage(stageIndex: number, totalStages: number): string {
   const t = totalStages <= 1 ? 0 : stageIndex / (totalStages - 1);
@@ -23,4 +23,8 @@ export function trailColorForStage(stageIndex: number, totalStages: number): str
 export function trailRgbForStage(stageIndex: number, totalStages: number): [number, number, number] {
   const t = totalStages <= 1 ? 0 : stageIndex / (totalStages - 1);
   return lerpColor(ROSE_RGB, GOLD_RGB, t);
+}
+
+export function randomTrailRgb(): [number, number, number] {
+  return lerpColor(ROSE_RGB, GOLD_RGB, Math.random());
 }
