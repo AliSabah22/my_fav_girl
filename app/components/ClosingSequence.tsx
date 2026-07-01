@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ClosingSequenceProps {
   lines: string[];
@@ -10,10 +10,14 @@ interface ClosingSequenceProps {
 
 export default function ClosingSequence({ lines, intervalMs = 3200, onComplete }: ClosingSequenceProps) {
   const [index, setIndex] = useState(0);
+  const firedRef = useRef(false);
 
   useEffect(() => {
     if (index >= lines.length) {
-      onComplete();
+      if (!firedRef.current) {
+        firedRef.current = true;
+        onComplete();
+      }
       return;
     }
     const timer = setTimeout(() => setIndex((i) => i + 1), intervalMs);
