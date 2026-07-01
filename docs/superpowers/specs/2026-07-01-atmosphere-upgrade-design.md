@@ -48,9 +48,14 @@ New `app/lib/useAudioAmplitude.ts` — a hook that owns the Web Audio lifecycle 
 - `initAmplitude(audioEl: HTMLAudioElement): void` — called exactly once, from `page.tsx`'s `handleBegin`, after the user's click. `AudioContext` requires a user gesture to start, and `createMediaElementSource` throws if called twice on the same element, so this must run once, post-click, guarded against re-invocation. Creates the `AudioContext`, the `MediaElementSource`, and an `AnalyserNode` (`fftSize = 256`), and wires `source → analyser → audioCtx.destination`. **The connection to `destination` is required** — skipping it would silence playback entirely, since attaching a `MediaElementSource` reroutes the element's audio through the Web Audio graph.
 - `getAmplitude(): number` — a stable callback that reads `analyser.getByteFrequencyData()` into a reused `Uint8Array`, runs it through `averageAmplitude` + `smoothAmplitude`, and returns the current smoothed value. Safe to call before `initAmplitude` has run (returns `0`).
 
-`page.tsx` calls `initAmplitude` inside `handleBegin` and passes `getAmplitude` down to `StageBackdrop`, `FloatingParticles`, `CursorTrail`, and `SoulThread`.
+`page.tsx` calls `initAmplitude` inside `handleBegin` and passes `getAmplitude` down to four consumers, each using it as a small multiplier on top of behavior it already has:
 
-**Fallback:** if `AudioContext`/`createMediaElementSource` throws or isn't available, `getAmplitude()` simply always returns `0`. Every consumer already treats amplitude as an *additive* multiplier on top of its existing scripted per-stage behavior, so a constant `0` degrades gracefully to exactly today's behavior — never a broken or blank state.
+- `StageBackdrop`: multiplies the breathing glow's opacity/scale (detailed above).
+- `FloatingParticles`: multiplies each particle's effective speed in `stepParticle` (e.g. `speed * (1 + amplitude * 0.6)`) — louder moments drift particles slightly faster, quieter moments slow back toward the existing scripted per-stage speed.
+- `CursorTrail`: multiplies each trail point's drawn radius (detailed below).
+- `SoulThread`: multiplies the stroke opacity / drop-shadow radius on top of the existing stage-based brightening (detailed below) — louder moments make the thread glow a little brighter, independent of which stage is active.
+
+**Fallback:** if `AudioContext`/`createMediaElementSource` throws or isn't available, `getAmplitude()` simply always returns `0`. Every consumer above treats amplitude as an *additive* multiplier on top of its existing scripted per-stage behavior, so a constant `0` degrades gracefully to exactly today's behavior — never a broken or blank state.
 
 ## Soul-Thread Motif — `SoulThread` Component
 
@@ -62,7 +67,7 @@ export function threadPaths(t: number, width: number, height: number): { d1: str
 
 Returns two SVG path `d` strings whose control points are offset by sine functions of `t`, so the two paths drift and cross organically over time rather than looping mechanically.
 
-New `app/components/SoulThread.tsx` — renders an SVG with two `<path>` elements (`stroke: rose` / `stroke: gold`, `filter: drop-shadow(0 0 8px currentColor)`), driven by a `requestAnimationFrame` loop calling `threadPaths(performance.now() / 1000, …)` and setting each path's `d` attribute directly via a ref — same direct-DOM-mutation pattern the canvas components already use, not React state. Takes `stageIndex`/`totalStages` props; glow intensity (stroke opacity / drop-shadow radius) increases toward the Final stage. Respects `prefers-reduced-motion` (renders one static pair of paths, no rAF loop). Mounted once in `page.tsx` as a persistent, low-opacity element sitting behind the stage text, above the backdrop glow — not tied to any single stage's mount/unmount cycle.
+New `app/components/SoulThread.tsx` — renders an SVG with two `<path>` elements (`stroke: rose` / `stroke: gold`, `filter: drop-shadow(0 0 8px currentColor)`), driven by a `requestAnimationFrame` loop calling `threadPaths(performance.now() / 1000, …)` and setting each path's `d` attribute directly via a ref — same direct-DOM-mutation pattern the canvas components already use, not React state. Takes `stageIndex`/`totalStages`, and `getAmplitude` props; base glow intensity (stroke opacity, `0.4` at `stageIndex 0` rising linearly to `0.8` at the last stage) increases toward the Final stage, and `getAmplitude()` is read on the same rAF tick and added as a further multiplier (`opacity * (1 + amplitude * 0.3)`) so louder moments brighten the thread independent of stage. Respects `prefers-reduced-motion` (renders one static pair of paths at the stage-based opacity, no rAF loop, no amplitude read). Mounted once in `page.tsx` as a persistent, low-opacity element sitting behind the stage text, above the backdrop glow — not tied to any single stage's mount/unmount cycle.
 
 ## Line Reveals — Blur-to-Focus + Emphasis Lines
 
