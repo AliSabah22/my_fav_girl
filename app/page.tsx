@@ -4,9 +4,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { stages, nameEchoOptions, closingSequence, finalScreen } from "./data/stages";
 import { photoInterlude } from "./data/photos";
 import { getActiveStage, isInPhotoInterlude, getNextStageWindowStart, getPhotoInterludeExitTarget } from "./lib/audioState";
+import { useAudioAmplitude } from "./lib/useAudioAmplitude";
+import { signatureEase } from "./lib/motion";
 import AudioPlayer from "./components/AudioPlayer";
 import FloatingParticles from "./components/FloatingParticles";
 import CursorTrail from "./components/CursorTrail";
+import StageBackdrop from "./components/StageBackdrop";
+import SoulThread from "./components/SoulThread";
 import PreExperiencePrompt from "./components/PreExperiencePrompt";
 import StageText from "./components/StageText";
 import PhotoInterlude from "./components/PhotoInterlude";
@@ -23,6 +27,7 @@ export default function Page() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [phase, setPhase] = useState<Phase>("pre");
   const [currentTime, setCurrentTime] = useState(0);
+  const { initAmplitude, getAmplitude } = useAudioAmplitude();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -52,7 +57,11 @@ export default function Page() {
 
   function handleBegin() {
     setPhase("experience");
-    audioRef.current?.play().catch(() => {});
+    const audio = audioRef.current;
+    if (audio) {
+      initAmplitude(audio);
+      audio.play().catch(() => {});
+    }
   }
 
   function handleAudioEnded() {
@@ -66,10 +75,10 @@ export default function Page() {
     if (!audio) return;
     const next = inPhotoInterlude
       ? getPhotoInterludeExitTarget(photoInterlude, stages)
+      : activeStage?.id === "stage2"
+      ? photoInterlude.windowStart
       : activeStage
-      ? activeStage.id === "stage2"
-        ? photoInterlude.windowStart
-        : getNextStageWindowStart(stages, activeStage.id)
+      ? getNextStageWindowStart(stages, activeStage.id)
       : null;
     if (next !== null) {
       audio.currentTime = next;
@@ -91,14 +100,16 @@ export default function Page() {
       className="relative h-screen w-screen overflow-hidden bg-bg"
       onClick={phase === "experience" ? handleSkip : undefined}
     >
-      <FloatingParticles stageIndex={stageIndex} totalStages={stages.length} />
-      <CursorTrail stageIndex={stageIndex} totalStages={stages.length} />
+      <StageBackdrop getAmplitude={getAmplitude} />
+      <FloatingParticles stageIndex={stageIndex} totalStages={stages.length} getAmplitude={getAmplitude} />
+      <SoulThread stageIndex={stageIndex} totalStages={stages.length} getAmplitude={getAmplitude} />
+      <CursorTrail getAmplitude={getAmplitude} />
       <AudioPlayer src="/audio/risk-it-all.mp3" audioRef={audioRef} onEnded={handleAudioEnded} />
 
       <div className="relative z-20 flex h-full w-full items-center justify-center">
         <AnimatePresence mode="wait">
           {phase === "pre" && (
-            <motion.div key="pre" exit={{ opacity: 0 }}>
+            <motion.div key="pre" exit={{ opacity: 0 }} transition={{ duration: 0.6, ease: signatureEase }}>
               <PreExperiencePrompt onBegin={handleBegin} />
             </motion.div>
           )}
@@ -109,6 +120,7 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: signatureEase }}
               className="h-full w-full"
             >
               <PhotoInterlude interlude={photoInterlude} currentTime={currentTime} />
@@ -121,14 +133,20 @@ export default function Page() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, ease: signatureEase }}
             >
               <StageText stage={activeStage} currentTime={currentTime} />
             </motion.div>
           )}
 
           {phase === "name" && (
-            <motion.div key="name" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="name"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: signatureEase }}
+            >
               <NameEcho options={nameEchoOptions} onComplete={() => setPhase("closing")} />
             </motion.div>
           )}
@@ -139,6 +157,7 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: signatureEase }}
               className="h-full w-full"
             >
               <ClosingSequence lines={closingSequence} onComplete={() => setPhase("final")} />
@@ -146,7 +165,13 @@ export default function Page() {
           )}
 
           {phase === "final" && (
-            <motion.div key="final" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="final"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: signatureEase }}
+            >
               <FinalScreen message={finalScreen.message} ctaLabel={finalScreen.ctaLabel} onRestart={handleRestart} />
             </motion.div>
           )}
