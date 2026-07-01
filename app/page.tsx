@@ -155,7 +155,7 @@ export default function Page() {
 
       {phase === "experience" && (
         <div className="fixed bottom-8 left-1/2 z-20 -translate-x-1/2">
-          <ProgressIndicator stages={stages} activeStageId={activeStage?.id ?? null} />
+          <ProgressIndicator progress={currentTime / stages[stages.length - 1].windowEnd} />
         </div>
       )}
     </main>

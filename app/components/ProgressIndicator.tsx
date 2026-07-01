@@ -1,19 +1,25 @@
 interface ProgressIndicatorProps {
-  stages: { id: string }[];
-  activeStageId: string | null;
+  progress: number; // 0-1
 }
 
-export default function ProgressIndicator({ stages, activeStageId }: ProgressIndicatorProps) {
+export default function ProgressIndicator({ progress }: ProgressIndicatorProps) {
+  const clamped = Math.min(1, Math.max(0, progress));
   return (
-    <div className="flex items-center gap-2" role="progressbar" aria-label="Experience progress">
-      {stages.map((stage) => (
-        <span
-          key={stage.id}
-          className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
-            stage.id === activeStageId ? "bg-gold" : "bg-line"
-          }`}
-        />
-      ))}
+    <div
+      role="progressbar"
+      aria-label="Experience progress"
+      aria-valuenow={Math.round(clamped * 100)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className="h-[2px] w-48 overflow-hidden rounded-full bg-line"
+    >
+      <div
+        style={{
+          width: `${clamped * 100}%`,
+          boxShadow: "0 0 8px rgba(255,111,145,0.6)",
+        }}
+        className="h-full bg-gold transition-[width] duration-300 ease-out"
+      />
     </div>
   );
 }
