@@ -10,8 +10,8 @@ const config: Config = {
         panel: "#2a2032",
         line: "#3a2e44",
         cream: "#f3ead9",
-        gold: "#c9a15a",
-        rose: "#d98a82",
+        gold: "#ff6f91",
+        rose: "#ff8fab",
         muted: "#9a8aa3",
       },
       fontFamily: {
