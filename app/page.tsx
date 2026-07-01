@@ -74,6 +74,7 @@ export default function Page() {
       audio.pause();
       audio.currentTime = 0;
     }
+    setCurrentTime(0);
     setPhase("pre");
   }
 
