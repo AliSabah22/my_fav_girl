@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { averageAmplitude, smoothAmplitude } from "./audioAmplitude";
 
 export function useAudioAmplitude() {
@@ -8,7 +8,7 @@ export function useAudioAmplitude() {
   const smoothedRef = useRef(0);
   const initializedRef = useRef(false);
 
-  function initAmplitude(audioEl: HTMLAudioElement) {
+  const initAmplitude = useCallback((audioEl: HTMLAudioElement) => {
     if (initializedRef.current) return;
     initializedRef.current = true;
     try {
@@ -24,9 +24,9 @@ export function useAudioAmplitude() {
     } catch {
       analyserRef.current = null;
     }
-  }
+  }, []);
 
-  function getAmplitude(): number {
+  const getAmplitude = useCallback((): number => {
     const analyser = analyserRef.current;
     const data = dataRef.current;
     if (!analyser || !data) return 0;
@@ -34,7 +34,7 @@ export function useAudioAmplitude() {
     const next = averageAmplitude(data);
     smoothedRef.current = smoothAmplitude(smoothedRef.current, next, 0.3);
     return smoothedRef.current;
-  }
+  }, []);
 
   return { initAmplitude, getAmplitude };
 }

@@ -9,16 +9,27 @@ export default function StageBackdrop({ getAmplitude }: StageBackdropProps) {
   const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const glow = glowRef.current;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) return;
+    if (reducedMotion) {
+      if (glow) {
+        glow.style.opacity = "1";
+        glow.style.transform = "scale(1)";
+      }
+      return;
+    }
 
     let frame: number;
     function tick() {
-      const glow = glowRef.current;
       if (glow) {
         const amplitude = getAmplitude();
+        const t = performance.now() / 1000;
+        const breathePhase = (Math.sin((t / 6) * Math.PI * 2 - Math.PI / 2) + 1) / 2;
+        const scale = 1 + breathePhase * 0.05;
+        const opacity = 0.7 + breathePhase * 0.3;
         const boost = 1 + amplitude * 0.4;
-        glow.style.setProperty("--amp-boost", boost.toFixed(3));
+        glow.style.opacity = opacity.toFixed(3);
+        glow.style.transform = `scale(${(scale * boost).toFixed(3)})`;
       }
       frame = requestAnimationFrame(tick);
     }
@@ -35,8 +46,6 @@ export default function StageBackdrop({ getAmplitude }: StageBackdropProps) {
         style={{
           background:
             "radial-gradient(circle at 50% 45%, rgba(255,111,145,0.14), rgba(255,143,171,0.08) 35%, transparent 65%)",
-          animation: "breathe 6s ease-in-out infinite",
-          transform: "scale(var(--amp-boost, 1))",
         }}
       />
       <div
