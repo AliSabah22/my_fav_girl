@@ -6,5 +6,6 @@ node_modules
 tsconfig.tsbuildinfo
 public/audio/*
 !public/audio/.gitkeep
+!public/audio/risk-it-all.mp3
 public/photos/*
 !public/photos/.gitkeep
