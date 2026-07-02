@@ -60,7 +60,6 @@ export const stages: Stage[] = [
       { time: 115, text: "Somewhere between every conversation, Fizza became Fizzy." },
       { time: 117.7, text: "Funny, how a nickname can hold this much." },
       { time: 120.4, text: "There are moments now that belong only to us." },
-      { time: 123.1, text: "[INSERT YOUR INSIDE JOKE HERE]" },
       { time: 125.8, text: "Small. Ordinary, probably, to anyone else." },
       { time: 128.5, text: "But they're already some of my favorite minutes alive." },
       { time: 131.2, text: "We've only had a month." },

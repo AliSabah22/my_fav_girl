@@ -14,15 +14,19 @@ const lineVariants = {
   visible: { opacity: 1, y: 0, filter: "blur(0px)" },
 };
 
+const MAX_VISIBLE_LINES = 3;
+
 export default function StageText({ stage, currentTime }: StageTextProps) {
   const lines = getRevealedLines(stage, currentTime);
+  const startIndex = Math.max(0, lines.length - MAX_VISIBLE_LINES);
+  const visibleLines = lines.slice(startIndex);
 
   return (
-    <div className="flex max-h-[70vh] max-w-[600px] flex-col items-center justify-center gap-8 overflow-y-auto px-6 text-center">
+    <div className="flex max-w-[600px] flex-col items-center justify-center gap-8 overflow-hidden px-6 text-center">
       <AnimatePresence mode="popLayout">
-        {lines.map((line, i) => (
+        {visibleLines.map((line, i) => (
           <motion.p
-            key={`${stage.id}-${i}`}
+            key={`${stage.id}-${startIndex + i}`}
             variants={lineVariants}
             initial="hidden"
             animate="visible"
