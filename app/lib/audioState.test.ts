@@ -8,6 +8,7 @@ import {
   getSpotlightIndex,
   getNextStageWindowStart,
   getPhotoInterludeExitTarget,
+  getStageIndexForTime,
 } from "./audioState";
 import type { Stage } from "../types";
 
@@ -105,6 +106,30 @@ describe("getSpotlightIndex", () => {
 
   it("returns 0 when there are no photos", () => {
     expect(getSpotlightIndex(0.5, 0)).toBe(0);
+  });
+});
+
+describe("getStageIndexForTime", () => {
+  it("returns 0 for a time before the first stage's windowStart", () => {
+    expect(getStageIndexForTime(stages, -5)).toBe(0);
+  });
+
+  it("returns the index of the stage whose window contains currentTime", () => {
+    expect(getStageIndexForTime(stages, 3)).toBe(0);
+    expect(getStageIndexForTime(stages, 15)).toBe(1);
+  });
+
+  it("carries the earlier stage's index forward through a gap between stages", () => {
+    // stages[1] ("b") ends at windowEnd 20; stages[2] ("c") doesn't start until
+    // windowStart 25 — currentTime 22 falls in that gap and should stay on "b"
+    // (index 1), not fall back to 0.
+    expect(getStageIndexForTime(stages, 22)).toBe(1);
+  });
+
+  it("returns the last index at and after the last stage's windowStart, including past all windows", () => {
+    expect(getStageIndexForTime(stages, 25)).toBe(2);
+    expect(getStageIndexForTime(stages, 30)).toBe(2);
+    expect(getStageIndexForTime(stages, 1000)).toBe(2);
   });
 });
 

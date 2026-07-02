@@ -4,6 +4,14 @@ export function getActiveStage(stages: Stage[], currentTime: number): Stage | nu
   return stages.find((s) => currentTime >= s.windowStart && currentTime < s.windowEnd) ?? null;
 }
 
+export function getStageIndexForTime(stages: Stage[], currentTime: number): number {
+  let idx = 0;
+  for (let i = 0; i < stages.length; i++) {
+    if (stages[i].windowStart <= currentTime) idx = i;
+  }
+  return idx;
+}
+
 export function getRevealedLines(
   stage: Stage,
   currentTime: number
