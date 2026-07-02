@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { stages, nameEchoOptions, closingSequence, finalScreen } from "./data/stages";
-import { photoInterlude } from "./data/photos";
-import { getActiveStage, isInPhotoInterlude, getNextStageWindowStart, getPhotoInterludeExitTarget } from "./lib/audioState";
+import { stages as rawStages, closingSequence, finalScreen } from "./data/stages";
+import { getActiveStage } from "./lib/audioState";
+import { scaleStagesToDuration, THREAD_WINDOW } from "./lib/stageTiming";
 import { useAudioAmplitude } from "./lib/useAudioAmplitude";
 import { signatureEase } from "./lib/motion";
 import AudioPlayer from "./components/AudioPlayer";
@@ -13,20 +13,20 @@ import StageBackdrop from "./components/StageBackdrop";
 import SoulThread from "./components/SoulThread";
 import PreExperiencePrompt from "./components/PreExperiencePrompt";
 import StageText from "./components/StageText";
-import PhotoInterlude from "./components/PhotoInterlude";
 import ProgressIndicator from "./components/ProgressIndicator";
-import NameEcho from "./components/NameEcho";
 import ClosingSequence from "./components/ClosingSequence";
 import FinalScreen from "./components/FinalScreen";
 
-type Phase = "pre" | "experience" | "name" | "closing" | "final";
+type Phase = "pre" | "experience" | "closing" | "final";
 
 const FINAL_STAGE_ID = "final";
+const REFERENCE_DURATION = 204;
 
 export default function Page() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [phase, setPhase] = useState<Phase>("pre");
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(REFERENCE_DURATION);
   const { initAmplitude, getAmplitude } = useAudioAmplitude();
 
   useEffect(() => {
@@ -35,25 +35,34 @@ export default function Page() {
     function handleTimeUpdate() {
       setCurrentTime(audio!.currentTime);
     }
+    function handleLoadedMetadata() {
+      if (audio!.duration && isFinite(audio!.duration)) {
+        setDuration(audio!.duration);
+      }
+    }
     audio.addEventListener("timeupdate", handleTimeUpdate);
-    return () => audio.removeEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
   }, []);
 
+  const stages = scaleStagesToDuration(rawStages, duration);
   const activeStage = getActiveStage(stages, currentTime);
-  const inPhotoInterlude = isInPhotoInterlude(photoInterlude, currentTime);
   const stageIndex = activeStage ? stages.findIndex((s) => s.id === activeStage.id) : 0;
 
   const finalStage = stages.find((s) => s.id === FINAL_STAGE_ID)!;
   const lastLineTime = finalStage.lines[finalStage.lines.length - 1].time;
-  const reachedNamePrompt =
+  const reachedClosing =
     phase === "experience" && activeStage?.id === FINAL_STAGE_ID && currentTime >= lastLineTime;
 
   useEffect(() => {
-    if (reachedNamePrompt) {
+    if (reachedClosing) {
       audioRef.current?.pause();
-      setPhase("name");
+      setPhase("closing");
     }
-  }, [reachedNamePrompt]);
+  }, [reachedClosing]);
 
   function handleBegin() {
     setPhase("experience");
@@ -67,22 +76,7 @@ export default function Page() {
   function handleAudioEnded() {
     if (phase !== "experience") return;
     audioRef.current?.pause();
-    setPhase("name");
-  }
-
-  function handleSkip() {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const next = inPhotoInterlude
-      ? getPhotoInterludeExitTarget(photoInterlude, stages)
-      : activeStage?.id === "stage2"
-      ? photoInterlude.windowStart
-      : activeStage
-      ? getNextStageWindowStart(stages, activeStage.id)
-      : null;
-    if (next !== null) {
-      audio.currentTime = next;
-    }
+    setPhase("closing");
   }
 
   function handleRestart() {
@@ -96,13 +90,16 @@ export default function Page() {
   }
 
   return (
-    <main
-      className="relative h-screen w-screen overflow-hidden bg-bg"
-      onClick={phase === "experience" ? handleSkip : undefined}
-    >
+    <main className="relative h-screen w-screen overflow-hidden bg-bg">
       <StageBackdrop getAmplitude={getAmplitude} />
       <FloatingParticles stageIndex={stageIndex} totalStages={stages.length} getAmplitude={getAmplitude} />
-      <SoulThread stageIndex={stageIndex} totalStages={stages.length} getAmplitude={getAmplitude} />
+      <SoulThread
+        stageIndex={stageIndex}
+        totalStages={stages.length}
+        getAmplitude={getAmplitude}
+        currentTime={currentTime}
+        interactiveWindow={THREAD_WINDOW}
+      />
       <CursorTrail getAmplitude={getAmplitude} />
       <AudioPlayer src="/audio/risk-it-all.mp3" audioRef={audioRef} onEnded={handleAudioEnded} />
 
@@ -114,20 +111,7 @@ export default function Page() {
             </motion.div>
           )}
 
-          {phase === "experience" && inPhotoInterlude && (
-            <motion.div
-              key="photos"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: signatureEase }}
-              className="h-full w-full"
-            >
-              <PhotoInterlude interlude={photoInterlude} currentTime={currentTime} />
-            </motion.div>
-          )}
-
-          {phase === "experience" && !inPhotoInterlude && activeStage && (
+          {phase === "experience" && activeStage && (
             <motion.div
               key={activeStage.id}
               initial={{ opacity: 0, y: 12 }}
@@ -136,18 +120,6 @@ export default function Page() {
               transition={{ duration: 0.8, ease: signatureEase }}
             >
               <StageText stage={activeStage} currentTime={currentTime} />
-            </motion.div>
-          )}
-
-          {phase === "name" && (
-            <motion.div
-              key="name"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: signatureEase }}
-            >
-              <NameEcho options={nameEchoOptions} onComplete={() => setPhase("closing")} />
             </motion.div>
           )}
 
