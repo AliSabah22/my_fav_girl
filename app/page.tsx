@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { stages as rawStages, closingSequence, finalScreen } from "./data/stages";
-import { getActiveStage } from "./lib/audioState";
+import { getActiveStage, getStageIndexForTime } from "./lib/audioState";
 import { scaleStagesToDuration, THREAD_WINDOW } from "./lib/stageTiming";
 import { useAudioAmplitude } from "./lib/useAudioAmplitude";
 import { signatureEase } from "./lib/motion";
@@ -42,6 +42,7 @@ export default function Page() {
     }
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    if (audio.readyState >= 1) handleLoadedMetadata();
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
@@ -50,7 +51,7 @@ export default function Page() {
 
   const stages = scaleStagesToDuration(rawStages, duration);
   const activeStage = getActiveStage(stages, currentTime);
-  const stageIndex = activeStage ? stages.findIndex((s) => s.id === activeStage.id) : 0;
+  const stageIndex = getStageIndexForTime(stages, currentTime);
 
   const finalStage = stages.find((s) => s.id === FINAL_STAGE_ID)!;
   const lastLineTime = finalStage.lines[finalStage.lines.length - 1].time;

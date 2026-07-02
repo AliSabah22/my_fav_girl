@@ -66,7 +66,12 @@ export default function SoulThread({
 
     function computeMergeProgress(): number {
       const t = currentTimeRef.current;
-      if (t <= interactiveWindow.start) return 0;
+      if (t <= interactiveWindow.start) {
+        lockedMergeRef.current = false;
+        cumulativeDistanceRef.current = 0;
+        lastPointerRef.current = null;
+        return 0;
+      }
       if (t > interactiveWindow.end) {
         lockedMergeRef.current = true;
         return 1;
